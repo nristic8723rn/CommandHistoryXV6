@@ -24,6 +24,13 @@ static struct {
 	int locking;
 } cons;
 
+char istorija[3][129];
+int trenutna = 0;
+int brojacKomandi = 0;
+int trenutna1=0;
+int brojacKomandi1 = 0;
+int obojenost = 0x0700;
+
 static void
 printint(int xx, int base, int sign)
 {
@@ -142,7 +149,7 @@ cgaputc(int c)
 	else if(c == BACKSPACE){
 		if(pos > 0) --pos;
 	} else
-		crt[pos++] = (c&0xff) | 0x0700;  // black on white
+		crt[pos++] = (c&0xff) | obojenost;  // black on white
 
 	if(pos < 0 || pos > 25*80)
 		panic("pos under/overflow");
@@ -182,6 +189,7 @@ struct {
 	uint r;  // Read index
 	uint w;  // Write index
 	uint e;  // Edit index
+	uint pos;
 } input;
 
 #define C(x)  ((x)-'@')  // Control-x
@@ -211,14 +219,82 @@ consoleintr(int (*getc)(void))
 				consputc(BACKSPACE);
 			}
 			break;
+		case 250:
+			obojenost=0x0200;
+			if(brojacKomandi1>0)
+			{
+				brojacKomandi1--;
+				trenutna1=(trenutna1+2)%3;
+				while(input.e > input.w)
+				{
+					input.e--;
+					consputc(BACKSPACE);
+				}
+
+				for(int i = 0; i < strlen(istorija[trenutna1]); i++)
+				{
+					int slovo = istorija[trenutna1][i];
+					consputc(slovo);
+					input.buf[input.e++%INPUT_BUF] = slovo;
+				}
+			}
+
+			break;
+		case 251:
+			obojenost=0x0200;
+			if(brojacKomandi1<brojacKomandi)
+			{
+				brojacKomandi1++;
+				trenutna1=(trenutna1+1)%3;
+				while(input.e > input.w)
+				{
+					input.e--;
+					consputc(BACKSPACE);
+				}
+				if(brojacKomandi1==brojacKomandi)
+				{
+					break;
+				}
+				for(int i = 0; i < strlen(istorija[trenutna1]); i++)
+				{
+					int slovo = istorija[trenutna1][i];
+					consputc(slovo);
+					input.buf[input.e++%INPUT_BUF] = slovo;
+				}
+			}
+
+			break;
 		default:
 			if(c != 0 && input.e-input.r < INPUT_BUF){
+				obojenost = 0x0700;
 				c = (c == '\r') ? '\n' : c;
 				input.buf[input.e++ % INPUT_BUF] = c;
 				consputc(c);
+				int j=0;
 				if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
+
+
+					for(int i=input.w; i<input.e; i++)
+					{
+						if(input.buf[i%INPUT_BUF]=='\n')
+						{
+							break;
+						}
+						istorija[trenutna][j++] = input.buf[i%INPUT_BUF];
+					}
+
+					istorija[trenutna][j] = '\0';
+					trenutna=(trenutna+1)%3;
+					trenutna1=trenutna;
+					if(brojacKomandi<3)
+					{
+						brojacKomandi++;
+					}
+					brojacKomandi1=brojacKomandi;
+
 					input.w = input.e;
 					wakeup(&input.r);
+
 				}
 			}
 			break;

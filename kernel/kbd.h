@@ -85,7 +85,7 @@ static uchar shiftmap[256] =
 	'2',  '3',  '0',  '.',  NO,   NO,   NO,   NO,   // 0x50
 	[0x9C] '\n',      // KP_Enter
 	[0xB5] '/',       // KP_Div
-	[0xC8] KEY_UP,    [0xD0] KEY_DN,
+	[0xC8] 250,    [0xD0] 251,
 	[0xC9] KEY_PGUP,  [0xD1] KEY_PGDN,
 	[0xCB] KEY_LF,    [0xCD] KEY_RT,
 	[0x97] KEY_HOME,  [0xCF] KEY_END,
