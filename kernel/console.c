@@ -189,7 +189,6 @@ struct {
 	uint r;  // Read index
 	uint w;  // Write index
 	uint e;  // Edit index
-	uint pos;
 } input;
 
 #define C(x)  ((x)-'@')  // Control-x
@@ -272,9 +271,8 @@ consoleintr(int (*getc)(void))
 				consputc(c);
 				int j=0;
 				if(c == '\n' || c == C('D') || input.e == input.r+INPUT_BUF){
-
-
-					for(int i=input.w; i<input.e; i++)
+					if(!(input.w==input.e-1))
+					{for(int i=input.w; i<input.e; i++)
 					{
 						if(input.buf[i%INPUT_BUF]=='\n')
 						{
@@ -291,7 +289,7 @@ consoleintr(int (*getc)(void))
 						brojacKomandi++;
 					}
 					brojacKomandi1=brojacKomandi;
-
+					}
 					input.w = input.e;
 					wakeup(&input.r);
 
